@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <include layout="@layout/ads" />
+
+    <LinearLayout
+        android:id="@+id/parent_ll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:orientation="vertical" >
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center" >
+
+            <LinearLayout
+                android:id="@+id/game_ll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="bottom"
+                android:orientation="vertical"
+                android:visibility="gone" >
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center" >
+
+                    <HorizontalScrollView
+                        android:id="@+id/texuture_color_horizontalScrollView1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:scrollbars="none" >
+
+                        <FrameLayout
+                            android:id="@+id/frame_texuture_color_ll"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center" >
+
+                            <LinearLayout
+                                android:id="@+id/color_ll"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/color_texture_barr"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:visibility="gone" >
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/texuture_ll"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/color_texture_barr"
+                                android:gravity="center"
+                                android:orientation="horizontal"
+                                android:visibility="gone" >
+                            </LinearLayout>
+                        </FrameLayout>
+                    </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/eraser_popup_ll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:clickable="true"
+                        android:gravity="center"
+                        android:onClick="onClickBtn"
+                        android:orientation="horizontal"
+                        android:visibility="gone" >
+
+                        <LinearLayout
+                            android:id="@+id/eraser_left_ll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/eraser_left"
+                            android:gravity="center"
+                            android:orientation="horizontal" >
+
+                            <ImageView
+                                android:id="@+id/eraser_left_imgv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:onClick="onClickBtn"
+                                android:src="@drawable/_selector_erase_touch" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/eraser_lright_ll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/eraser_right"
+                            android:gravity="center"
+                            android:orientation="horizontal" >
+
+                            <ImageView
+                                android:id="@+id/eraser_right_imgv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:clickable="true"
+                                android:onClick="onClickBtn"
+                                android:src="@drawable/_selector_erase_all" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_play_ll"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/btn_play_bg_height"
+                    android:background="@drawable/buton_play_bg"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:visibility="invisible" >
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+
+                        <ImageView
+                            android:id="@+id/color_imgv"
+                            android:layout_width="@dimen/alphabet_bplay_btns"
+                            android:layout_height="@dimen/alphabet_bplay_btns"
+                            android:clickable="true"
+                            android:onClick="onClickBtn"
+                            android:src="@drawable/_selector_color" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+
+                        <ImageView
+                            android:id="@+id/texture_imgv"
+                            android:layout_width="@dimen/alphabet_bplay_btns"
+                            android:layout_height="@dimen/alphabet_bplay_btns"
+                            android:clickable="true"
+                            android:onClick="onClickBtn"
+                            android:src="@drawable/_selector_texture" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll4"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+
+                        <ImageView
+                            android:id="@+id/eraser_imgv"
+                            android:layout_width="@dimen/alphabet_bplay_btns"
+                            android:layout_height="@dimen/alphabet_bplay_btns"
+                            android:clickable="true"
+                            android:onClick="onClickBtn"
+                            android:src="@drawable/_selector_erase" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+
+                        <ImageView
+                            android:id="@+id/save_imgv"
+                            android:layout_width="@dimen/alphabet_bplay_btns"
+                            android:layout_height="@dimen/alphabet_bplay_btns"
+                            android:clickable="true"
+                            android:onClick="onClickBtn"
+                            android:src="@drawable/_selector_save" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll5"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+
+                        <ImageView
+                            android:id="@+id/share_imgv"
+                            android:layout_width="@dimen/alphabet_bplay_btns"
+                            android:layout_height="@dimen/alphabet_bplay_btns"
+                            android:clickable="true"
+                            android:onClick="onClickBtn"
+                            android:src="@drawable/_selector_share" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_play_ll6"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="horizontal" >
+
+                        <FrameLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center" >
+
+                            <ImageView
+                                android:id="@+id/sound_on_imgv"
+                                android:layout_width="@dimen/alphabet_bplay_btns"
+                                android:layout_height="@dimen/alphabet_bplay_btns"
+                                android:clickable="true"
+                                android:onClick="onClickBtn"
+                                android:src="@drawable/sound_on_selector" />
+
+                            <ImageView
+                                android:id="@+id/sound_off_imgv"
+                                android:layout_width="@dimen/alphabet_bplay_btns"
+                                android:layout_height="@dimen/alphabet_bplay_btns"
+                                android:clickable="true"
+                                android:onClick="onClickBtn"
+                                android:src="@drawable/sound_off_selector"
+                                android:visibility="gone" />
+                        </FrameLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:id="@+id/horizontalScrollView1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none" >
+
+                    <LinearLayout
+                        android:id="@+id/alphabet_btn_ll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/down_black_bg"
+                        android:orientation="horizontal"
+                        android:visibility="invisible" >
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/loading_rl"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#FFFFFF"
+                android:gravity="center" >
+
+                <RelativeLayout
+                    android:id="@+id/loading_rl_child"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#FFFFFF"
+                    android:gravity="center" >
+
+                    <ImageView
+                        android:id="@+id/loading_outer_circle_imgv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/circle" />
+
+                    <ImageView
+                        android:id="@+id/loading_rotating_circle_imgv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/loading_circle" />
+                </RelativeLayout>
+            </RelativeLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+</RelativeLayout>

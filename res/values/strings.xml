@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Fun2Learn</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="admod_banner_ad_id">ca-app-pub-5876483923420061/8372679633</string>
+    <string name="base64EncodedPublicKey">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnWQVFcSNdBT6G7CxO8cQkZyRq6Iq+XZ7Pa2hqMRgubiN+ypFMfykSzqD+C7s0ttHKY63PWMcwe7fu30GsG8ACsb/ipN32eQeceUwmuoFDYHkCush9F6OcFYSQx+U8HncqZmJD4bKJpCIlsASDcwwDlWcyqXLeh64EPXgrTld8O7j31P1xaUB3oYNoVfqrWfe7xH1Pbv6avrQOtHhF8KhCemFC4JNeADBQST4HCokcDfG7H5DlUBq2hcbL/S1ppYFvQs3t8RbXoV0B9Mab6bk3F0RxFGSmPSt44JDbQwBM+kph+ktM4WdqHB89P3NRjoUayCFNIp3s8EHd2TBc7d6GwIDAQAB</string>
+    <string name="inapp_purchase_key">fun_2_learn_remove_ads</string>
+
+</resources>
