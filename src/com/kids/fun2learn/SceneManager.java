@@ -1,19 +1,17 @@
 package com.kids.fun2learn;
 
-import org.anddev.andengine.entity.scene.Scene;
-import org.anddev.andengine.opengl.font.Font;
-import org.anddev.andengine.opengl.texture.Texture;
-import org.anddev.andengine.ui.activity.BaseGameActivity;
+import org.andengine.entity.scene.Scene;
+import org.andengine.opengl.font.Font;
+import org.andengine.opengl.texture.Texture;
+import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.content.Context;
 
 public class SceneManager {
-
-	private static BaseGameActivity core;
+	private static SimpleBaseGameActivity core;
 
 	public static void init(Context base) {
-		core = (BaseGameActivity) (base);
-		// TextureRegionFactory.setAssetBasePath("gfx/");
+		core = (SimpleBaseGameActivity) (base);
 	}
 
 	/**
@@ -27,7 +25,7 @@ public class SceneManager {
 	public static Scene getScene() {
 		return core.getEngine().getScene();
 	}
-	
+
 	public static void loadTexture(Texture texture) {
 		core.getEngine().getTextureManager().loadTexture(texture);
 	}
@@ -35,5 +33,4 @@ public class SceneManager {
 	public static void loadFont(Font font) {
 		core.getEngine().getFontManager().loadFont(font);
 	}
-
 }

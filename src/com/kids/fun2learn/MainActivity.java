@@ -1,824 +1,344 @@
 package com.kids.fun2learn;
 
-import java.io.File;
+import org.andengine.engine.options.EngineOptions;
+import org.andengine.entity.scene.Scene;
 
-import org.anddev.andengine.engine.Engine;
-import org.anddev.andengine.entity.scene.Scene;
-import org.anddev.andengine.entity.util.ScreenCapture;
-import org.anddev.andengine.entity.util.ScreenCapture.IScreenCaptureCallback;
-import org.anddev.andengine.opengl.view.RenderSurfaceView;
-
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.Display;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.util.Log;
+import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.kids.fun2learn.utils.AdManagerUtils;
+import com.appspartan.inappbilling.util.IabHelper;
+import com.appspartan.inappbilling.util.IabResult;
+import com.appspartan.inappbilling.util.Inventory;
+import com.appspartan.inappbilling.util.Purchase;
 import com.kids.fun2learn.utils.CommonConstants;
 import com.kids.fun2learn.utils.CommonUtils;
-import com.kids.fun2learn.utils.CustomAnimationUtils;
-import com.kids.fun2learn.utils.GATrackingUtils;
-import com.kids.fun2learn.utils.RandomNumberGenerator;
+import com.kids.fun2learn.utils.NetworkUtils;
 import com.kids.fun2learn.utils.SharedPrefUtils;
 
-public class MainActivity extends AppsPartanBaseGameActivity implements
-		SceneManagerListener {
-
-	/** Your ad unit id. Replace with your actual ad unit id. */
-	private static final String AD_UNIT_ID = "ca-app-pub-5876483923420061/1862350835";
-
-	/** The interstitial ad. */
-	private InterstitialAd interstitialAd;
-
-	private boolean isFirstTimeREsume;
+public class MainActivity extends AppsPartanBaseGameActivity {
+	protected static final String TAG = "Learn2fun IN APP Purchase";
+	// The helper object
+	protected IabHelper mHelper;
 
 	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-
-		GATrackingUtils.registerGA(this, "MainActivity");
-		// AdManagerUtils.startChaBoostAds(this);
+	public EngineOptions onCreateEngineOptions() {
+		return super.onCreateEngineOptions();
 	}
 
-	/** Called when the Load Interstitial button is clicked. */
-	public void loadInterstitial() {
-
-		// Create an ad.
-		interstitialAd = new InterstitialAd(this);
-		interstitialAd.setAdUnitId(AD_UNIT_ID);
-
-		// Check the logcat output for your hashed device ID to get test ads on
-		// a physical device.
-		AdRequest adRequest = new AdRequest.Builder()
-				.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-				.addTestDevice("INSERT_YOUR_HASHED_DEVICE_ID_HERE").build();
-
-		// Load the interstitial ad.
-		interstitialAd.loadAd(adRequest);
+	@Override
+	protected void onCreateResources() {
+		super.onCreateResources();
 	}
 
-	/** Called when the Show Interstitial button is clicked. */
-	public void showInterstitial() {
-
-		if (interstitialAd.isLoaded()) {
-			interstitialAd.show();
-		}
+	@Override
+	protected Scene onCreateScene() {
+		return super.onCreateScene();
 	}
 
 	@Override
 	protected void onCreate(Bundle pSavedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(pSavedInstanceState);
-
-		isFirstTimeREsume = false;
-		loadInterstitial();
-		// AdManagerUtils.createChartBoostAds(this, "543ff6a31873da648bbfc6e4",
-		// "d0210aa03cf7183eb1e02e5d1288d1d122492d52");
+		setUpInapp();
 	}
 
 	@Override
-	protected void onStop() {
-		// TODO Auto-generated method stub
-		super.onStop();
-
-		GATrackingUtils.unRegisterGA(this);
-
-		// AdManagerUtils.stopChartBoostAds(this);
-
-	}
-
-	@Override
-	public Engine onLoadEngine() {
-
-		return super.onLoadEngine();
-	}
-
-	@Override
-	public void onLoadResources() {
-
-		super.onLoadResources();
-
-	}
-
-	@Override
-	public Scene onLoadScene() {
-
-		return super.onLoadScene();
-	}
-
-	@Override
-	public void onLoadComplete() {
-		// TODO Auto-generated method stub
-		super.onLoadComplete();
-
-		// hideLoading();
-
-		// hideLoading();
-		//
-		// if (mainMenuScene != null)
-		// mainMenuScene.playBackgroundMusic();
-		// mittiBgSprite.setVelocityY(-300);
-
-		new DelaAsyncTask().execute();
-		//
+	protected synchronized void onResume() {
+		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
-
-		if (alphabetPaintingScene != null) {
-
-			if (SceneManager.getScene() == alphabetPaintingScene.getScene()) {
-
-				alphabetPaintingScene.stopBackgroundMusic();
-
-			}
-		}
-
-		if (mainMenuScene != null) {
-			if (SceneManager.getScene() == mainMenuScene.getScene()) {
-				mainMenuScene.pauseBirdSound();
-				mainMenuScene.stopBackgroundMusic();
-
-			}
-		}
-
-		isFirstTimeREsume = true;
-
-		// AdManagerUtils.pauseChartBoostAds(this);
-
 	}
 
 	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();
-
-		if (alphabetPaintingScene != null) {
-
-			if (SceneManager.getScene() == alphabetPaintingScene.getScene()) {
-
-				if (sound_on_imgv.getVisibility() == View.VISIBLE) {
-					alphabetPaintingScene.playBackgroundMusic();
-				}
-			}
-		}
-		if (mainMenuScene != null) {
-			if (SceneManager.getScene() == mainMenuScene.getScene()) {
-
-				mainMenuScene.replayBirdSound();
-				mainMenuScene.playBackgroundMusic();
-			}
-		}
-
-		if (isFirstTimeREsume) {
-			showInterstitial();
-		}
-
-		// AdManagerUtils.resumeCharBoostAds(this);
-
+	protected void onStop() {
+		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
-		
-		isFirstTimeREsume = false;
 	}
+
 	@Override
 	public void onBackPressed() {
-		// TODO Auto-generated method stub
-
-		if (SceneManager.getScene() == alphabetPaintingScene.getScene()) {
-
-			runOnUiThread(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-
-					alphabetPaintingScene.handleScreenShotPost();
-
-					CommonUtils.setVisibiltyGone(ads_layout);
-					// PyoanoItemContainerLL.setVisibility(View.INVISIBLE);
-					//
-					// btn_play_ll.clearAnimation();
-					// btn_play_ll.setVisibility(View.INVISIBLE);
-					//
-					//
-
-					alphabetPaintingScene.stopBackgroundMusic();
-					gameLL.setVisibility(View.INVISIBLE);
-
-					mainMenuScene.resetScene();
-					// PyoanoItemContainerLL.
-
-					SceneManager.setScene(mainMenuScene.getScene());
-
-				}
-			});
-
-		} else if (SceneManager.getScene() == mainMenuScene.getScene()) {
-
-			// if (SharedPrefUtils.getIsPurchased(getApplicationContext()) ==
-			// false) {
-			//
-			// super.showInAppPurchaseDialog();
-			// }
-
-			// super.onBackPressed();
-
-			// if (Chartboost.onBackPressed())
-			// return;
-			// else
-
-			// Chartboost.showInterstitial("MainActivity Back");
-
-			showInterstitial();
-			super.onBackPressed();
-		}
-
+		super.onBackPressed();
 	}
 
-	public void exitAndFinishGame() {
-
-		if (mainMenuScene != null) {
-			if (SceneManager.getScene() == mainMenuScene.getScene()) {
-				mainMenuScene.stopBirdSound();
+	public void showInAppPurchaseDialog() {
+		// Creating alert Dialog with three Buttons
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+		// Setting Dialog Message
+		alertDialog.setMessage("Do you want to remove ads?");
+		// Setting Positive Yes Button
+		alertDialog.setNeutralButton("Restore", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				if (NetworkUtils.isConnected(getApplicationContext())) {
+					restoreInAppTransaction();
+				} else {
+					CommonUtils.showToast(getApplicationContext(), CommonConstants.NO_NETWORK_MESSAGE);
+				}
 			}
-		}
+		});
+		// Setting Positive "Cancel" Button
+		alertDialog.setNegativeButton("Exit Game", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				// User pressed Cancel button. Write Logic Here
+				exitAndFinishGame();
+			}
+		});
+		// Setting Positive Yes Button
+		alertDialog.setPositiveButton("yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				// User pressed Cancel button. Write Logic Here
+				if (NetworkUtils.isConnected(getApplicationContext())) {
+					makeInAppPurchase();
+				} else {
+					CommonUtils.showToast(getApplicationContext(), CommonConstants.NO_NETWORK_MESSAGE);
+				}
+			}
+		});
+		// Showing Alert Message
+		alertDialog.show();
+	}
 
-		if (mainMenuScene != null) {
-			mainMenuScene.freemMenory();
-		}
-		if (alphabetPaintingScene != null) {
-			alphabetPaintingScene.freeMemory();
-		}
+	// Called from scene
+	public void startInAppBillibg() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (NetworkUtils.isConnected(getApplicationContext())) {
+					makeInAppPurchase();
+				} else {
+					CommonUtils.showToast(getApplicationContext(), CommonConstants.NO_NETWORK_MESSAGE);
+				}
+			}
+		});
+	}
 
-		MainMenuScene.unloadScene();
+	public void startRestoringTransaction() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (NetworkUtils.isConnected(getApplicationContext())) {
+					restoreInAppTransaction();
+				} else {
+					CommonUtils.showToast(getApplicationContext(), CommonConstants.NO_NETWORK_MESSAGE);
+				}
+			}
+		});
+	}
 
-		AlphabetPaintingScene.unloadScene();
-
-		this.finish();
-
+	protected void exitAndFinishGame() {
+		// it will be overridden
 	}
 
 	protected void showHideAds() {
-
-		if (SharedPrefUtils.getIsPurchased(getApplicationContext())) {
-
-			CommonUtils.setVisibiltyGone(ads_layout);
-
-		} else {
-
-			CommonUtils.setVisibiltyOn(ads_layout);
-
-		}
+		super.showHideAds();
+		// it will be overridden
 	}
 
-	public LinearLayout eraser_popup_ll, btn_play_ll;
-	private LinearLayout PyoanoItemContainerLL;
-	LinearLayout gameLL;
-	RelativeLayout ads_layout;
-
-	private LinearLayout imageView[] = new LinearLayout[6];
-
-	int animTranscordToX[] = { -0, 5, 6, 7, 8, 9, 10, 11 };
-
-	View vv;
-
-	RelativeLayout loading_rl, loading_rl_child;
-	ImageView loading_rotating_circle_imgv, sound_on_imgv, sound_off_imgv;
-	LinearLayout parent_LinearLayout;
-
-	protected void onSetContentView() {
-		// TODO Auto-generated method stub
-		Display display = this.getWindowManager().getDefaultDisplay();
-		final RelativeLayout relativeLayout = new RelativeLayout(this);
-		final FrameLayout.LayoutParams relativeLayoutLayoutParams = new FrameLayout.LayoutParams(
-				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
-		this.mRenderSurfaceView = new RenderSurfaceView(this);
-		this.mRenderSurfaceView.setRenderer(this.mEngine);
-		final LayoutParams surfaceViewLayoutParams = new RelativeLayout.LayoutParams(
-				super.createSurfaceViewLayoutParams());
-		((android.widget.RelativeLayout.LayoutParams) surfaceViewLayoutParams)
-				.addRule(RelativeLayout.CENTER_IN_PARENT);
-		// ADD MY NEW VIEW ABOVE
-		LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		vv = vi.inflate(R.layout.alphabets_container_layout, null);
-		// THIS IS MY CUSTOM VIEW
-
-		ads_layout = (RelativeLayout) vv.findViewById(R.id.ads_layout);
-
-		AdView mAdView = (AdView) vv.findViewById(R.id.adView);
-
-		AdManagerUtils.ShowAd(mAdView);
-		CommonUtils.setVisibiltyGone(ads_layout);
-
-		sound_on_imgv = (ImageView) vv.findViewById(R.id.sound_on_imgv);
-		sound_off_imgv = (ImageView) vv.findViewById(R.id.sound_off_imgv);
-
-		loading_rl = (RelativeLayout) vv.findViewById(R.id.loading_rl);
-
-		loading_rl_child = (RelativeLayout) vv
-				.findViewById(R.id.loading_rl_child);
-
-		loading_rotating_circle_imgv = (ImageView) vv
-				.findViewById(R.id.loading_rotating_circle_imgv);
-
-		eraser_popup_ll = (LinearLayout) vv.findViewById(R.id.eraser_popup_ll);
-
-		parent_LinearLayout = (LinearLayout) vv.findViewById(R.id.parent_ll);
-
-		btn_play_ll = (LinearLayout) vv.findViewById(R.id.btn_play_ll);
-
-		gameLL = (LinearLayout) vv.findViewById(R.id.game_ll);
-
-		PyoanoItemContainerLL = (LinearLayout) vv
-				.findViewById(R.id.alphabet_btn_ll);
-
-		// CustomAnimationUtils.CustomScaleAnimation(PyoanoItemContainerLL);
-
-		// ======Animation Array for play btn==========
-		LinearLayout playBtn = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll1);
-		LinearLayout playBtn1 = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll2);
-		LinearLayout playBtn2 = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll4);
-		LinearLayout playBtn3 = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll3);
-		LinearLayout playBtn4 = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll5);
-
-		LinearLayout playBtn6 = (LinearLayout) vv
-				.findViewById(R.id.btn_play_ll6);
-
-		imageView[0] = playBtn;
-		imageView[1] = playBtn1;
-		imageView[2] = playBtn2;
-		imageView[3] = playBtn3;
-		imageView[4] = playBtn4;
-		imageView[5] = playBtn6;
-
-		ShowLoading();
-		// animatePlayBtn(imageView, animTranscordToX,
-		// RandomNumberGenerator.genarateRandomNumber(3));
-
-		attachAlphabets(vv);
-
-		attachColorTexturePlate(vv);
-
-		// CommonUtils.getScreenResizeRatio(MainActivity.this);
-
-		// ==================================
-
-		relativeLayout.setLayoutParams(new LayoutParams(
-				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-
-		relativeLayout.setBackgroundColor(Color.RED);
-		relativeLayout
-				.addView(this.mRenderSurfaceView, surfaceViewLayoutParams); // ANDENGINE
-		// VIEW
-		relativeLayout.addView(vv, createAdViewLayoutParams()); // MYVIEW
-
-		this.setContentView(relativeLayout, relativeLayoutLayoutParams);
-
-	}
-
-	public void ShowLoading() {
-
-		Animation rotation_circle = AnimationUtils.loadAnimation(
-				getApplicationContext(), R.anim.rotate_image);
-
-		loading_rotating_circle_imgv.clearAnimation();
-
-		loading_rotating_circle_imgv.startAnimation(rotation_circle);
-
-		// CommonUtils.setVisibiltyOn(loading_rl);
-
-		// CustomAnimationUtils.CustomScaleAnimation(loading_rl_child);
-
-	}
-
-	public void hideLoading() {
-
-		// CustomAnimationUtils.CustomScaleAnimationEnd(loading_rl);
-
-		runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-
-				CustomAnimationUtils.removeLoadingAnimationEnd(loading_rl);
-
+	// Listener that's called when we finish querying the items and
+	// subscriptions we own
+	IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+			Log.d(TAG, "Query inventory finished.");
+			if (result.isFailure()) {
+				complain("Failed to query inventory: " + result);
+				return;
 			}
-		});
-
-		// CommonUtils.setVisibil(loading_rl);
-
-		// loading_rl.setVisibility(View.INVISIBLE);
-
-	}
-
-	public LinearLayout colorPlateLinearLayout, texture_PlateLinearLayout;
-	HorizontalScrollView horizontalScrollView;
-
-	private ColorAndTexturePlateImageAdapter colorPlateImageAdapter;
-	private ColorAndTexturePlateImageAdapter texturePlateImageAdapter;
-
-	private void attachColorTexturePlate(View vv) {
-
-		colorPlateLinearLayout = (LinearLayout) vv.findViewById(R.id.color_ll);
-
-		texture_PlateLinearLayout = (LinearLayout) vv
-				.findViewById(R.id.texuture_ll);
-
-		horizontalScrollView = (HorizontalScrollView) vv
-				.findViewById(R.id.texuture_color_horizontalScrollView1);
-
-		colorPlateImageAdapter = new ColorAndTexturePlateImageAdapter(this,
-				CommonConstants.COLOR_PLATE);
-
-		texturePlateImageAdapter = new ColorAndTexturePlateImageAdapter(this,
-				CommonConstants.TEXTURE_PLATE);
-
-		addViewsTOLayout(colorPlateImageAdapter, colorPlateLinearLayout);
-
-		addViewsTOLayout(texturePlateImageAdapter, texture_PlateLinearLayout);
-
-	}
-
-	private void addViewsTOLayout(
-			ColorAndTexturePlateImageAdapter colortexturePlateImageAdapter,
-			LinearLayout plateLinearLayout) {
-
-		plateLinearLayout.removeAllViews();
-
-		View viw2[] = new View[16];
-
-		int animTranscordToX2[] = { 0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-				16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
-
-		for (int i = 0; i < colortexturePlateImageAdapter.getCount(); i++) {
-
-			View view = colortexturePlateImageAdapter.getView(i, null, null);
-
-			viw2[i] = view;
-
-			plateLinearLayout.addView(view);
-
-		}
-
-	}
-
-	int animAplphabetItemsTranscordToX1[] = { 0, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-			14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 };
-
-	View alphabetsItemsViews[];
-
-	private void attachAlphabets(View vv) {
-
-		ImageAdapter adapter = new ImageAdapter(this);
-
-		alphabetsItemsViews = new View[26];
-
-		for (int i = 0; i < adapter.getCount(); i++) {
-			View view = adapter.getView(i, null, null);
-
-			alphabetsItemsViews[i] = view;
-		}
-
-	}
-
-	CustomAnimationUtils customAnimationUtils;
-
-	private void animatePlayBtn(View view[], int animTranscordToX[], int random) {
-
-		customAnimationUtils = new CustomAnimationUtils(MainActivity.this,
-				view, animTranscordToX, null, random);
-
-		customAnimationUtils.startAnimationTimer(50, 100);
-
-	}
-
-	public void showAplhabetScene() {
-
-		runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-
+			Log.d(TAG, "Query inventory was successful.");
+			/*
+			 * Check for items we own. Notice that for each purchase, we check
+			 * the developer payload to see if it's correct! See
+			 * verifyDeveloperPayload().
+			 */
+			// Check for gas delivery -- if we own gas, we should fill up the
+			// tank immediately
+			if (inventory.hasPurchase(getResources().getString(R.string.inapp_purchase_key))) {
+				SharedPrefUtils.putHasPurchased(MainActivity.this, true);
 				showHideAds();
-
-				if (customAnimationUtils != null)
-					customAnimationUtils.stopAnimationTimer();
-
-				gameLL.setVisibility(View.VISIBLE);
-
-				for (int i = 0; i < alphabetsItemsViews.length; i++) {
-
-					alphabetsItemsViews[i].clearAnimation();
-					alphabetsItemsViews[i].setVisibility(View.INVISIBLE);
+			} else {
+				Purchase removeAdsPurchase = inventory.getPurchase(getResources().getString(R.string.inapp_purchase_key));
+				if (removeAdsPurchase != null && verifyDeveloperPayload(removeAdsPurchase)) {
+					Log.d(TAG, "User has already purchased this item for removing ads. Write the Logic for removign Ads.");
+					mHelper.consumeAsync(inventory.getPurchase(getResources().getString(R.string.inapp_purchase_key)), mConsumeFinishedListener);
+					return;
 				}
+				Log.d(TAG, "Initial inventory query finished; enabling main UI.");
+			}
+		}
+	};
 
-				PyoanoItemContainerLL.removeAllViews();
-				PyoanoItemContainerLL.invalidate();
+	public void makeInAppPurchase() {
+		Log.d(TAG, "Buy gas button clicked.");
+		/*
+		 * TODO: for security, generate your payload here for verification. See
+		 * the comments on verifyDeveloperPayload() for more info. Since this is
+		 * a SAMPLE, we just use an empty string, but on a production app you
+		 * should carefully generate this.
+		 */
+		String payload = "";
+		mHelper.launchPurchaseFlow(this, getResources().getString(R.string.inapp_purchase_key), 10000, mPurchaseFinishedListener, payload);
+	}
 
-				// for (int i = 0; i < alphabetsItemsViews.length; i++) {
-				// alphabetsItemsViews[i].clearAnimation();
-				// alphabetsItemsViews[i].setVisibility(View.INVISIBLE);
-				// }
-				for (int i = 0; i < alphabetsItemsViews.length; i++) {
-					PyoanoItemContainerLL.addView(alphabetsItemsViews[i]);
-
+	private void setUpInapp() {
+		mHelper = new IabHelper(this, getResources().getString(R.string.base64EncodedPublicKey));
+		// enable debug logging (for a production application, you should set
+		// this to false).
+		mHelper.enableDebugLogging(true);
+		// Start setup. This is asynchronous and the specified listener
+		// will be called once setup completes.
+		Log.d(TAG, "Starting setup.");
+		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+			public void onIabSetupFinished(IabResult result) {
+				Log.d(TAG, "Setup finished.");
+				if (!result.isSuccess()) {
+					// Oh noes, there was a problem.
+					complain("Problem setting up in-app billing: " + result);
+					return;
 				}
-
-				// attachAlphabets(vv);
-
-				// for (int i = 0; i < alphabetsItemsViews.length; i++) {
-				//
-				// alphabetsItemsViews[i].clearAnimation();
-				// alphabetsItemsViews[i].setVisibility(View.INVISIBLE);}
-				//
-
-				// PyoanoItemContainerLL.addView(alphabetsItemsViews[i]);
-				//
-				// alphabetsItemsViews[i].setVisibility(View.VISIBLE);
-				//
-				// }
-
-				// PyoanoItemContainerLL.invalidate();
-				// R
-				PyoanoItemContainerLL.setVisibility(View.VISIBLE);
-				//
-				animatePlayBtn(alphabetsItemsViews,
-						animAplphabetItemsTranscordToX1, 1);
-
-				// ===================================================
-				btn_play_ll.clearAnimation();
-
-				if (btn_play_ll.getChildCount() > 0) {
-					for (int i = 0; i < imageView.length; i++) {
-						btn_play_ll.removeView(imageView[i]);
-
-					}
-				}
-
-				for (int i = 0; i < imageView.length; i++) {
-
-					imageView[i].setVisibility(View.INVISIBLE);
-				}
-
-				for (int i = 0; i < imageView.length; i++) {
-					btn_play_ll.addView(imageView[i]);
-
-				}
-
-				CustomAnimationUtils.CustomScaleAnimation(btn_play_ll);
-
-				animatePlayBtn(imageView, animTranscordToX,
-						RandomNumberGenerator.genarateRandomNumber(2));
-
+				// Hooray, IAB is fully set up. Now, let's get an inventory of
+				// stuff we own.
+				Log.d(TAG, "Setup successful. Querying inventory.");
+				mHelper.queryInventoryAsync(mGotInventoryListener);
 			}
 		});
 	}
 
-	/**
-	 * Called from xml when eraser btn is clicked
-	 * 
-	 * @param view
-	 */
-
-	public void onClickBtn(View view) {
-		if (view.getId() == R.id.eraser_imgv) {
-
-			CommonUtils.setVisibiltyGone(texture_PlateLinearLayout);
-
-			CommonUtils.setVisibiltyGone(colorPlateLinearLayout);
-
-			CommonUtils.setVisibilty(eraser_popup_ll);
-
-		} else if (view.getId() == R.id.color_imgv) {
-
-			// addViewsTOLayout(colorPlateImageAdapter, colorPlateLinearLayout);
-
-			CommonUtils.setVisibiltyGone(eraser_popup_ll);
-
-			CommonUtils.setVisibiltyGone(texture_PlateLinearLayout);
-
-			CommonUtils.setVisibilty(colorPlateLinearLayout);
-
-			// animate(colorPlateLinearLayout);
-		}
-
-		else if (view.getId() == R.id.texture_imgv) {
-
-			// addViewsTOLayout(texturePlateImageAdapter,
-			// texture_PlateLinearLayout);
-
-			CommonUtils.setVisibiltyGone(eraser_popup_ll);
-			CommonUtils.setVisibiltyGone(colorPlateLinearLayout);
-
-			CommonUtils.setVisibilty(texture_PlateLinearLayout);
-
-			// animate(texture_PlateLinearLayout);
-
-		}
-
-		else if (view.getId() == R.id.eraser_left_imgv) {
-
-			// it erarese by touching
-			alphabetPaintingScene.erasePainting();
-
-			CommonUtils.setVisibiltyGone(eraser_popup_ll);
-
-		} else if (view.getId() == R.id.eraser_right_imgv) {
-
-			// it erarese by touching
-			alphabetPaintingScene.eraseWholePainting();
-
-			CommonUtils.setVisibiltyGone(eraser_popup_ll);
-		} else if (view.getId() == R.id.sound_on_imgv) {
-
-			CommonUtils.setVisibilty(sound_off_imgv);
-			CommonUtils.setVisibiltyGone(sound_on_imgv);
-
-			alphabetPaintingScene.stopBackgroundMusic();
-
-		} else if (view.getId() == R.id.sound_off_imgv) {
-
-			CommonUtils.setVisibilty(sound_on_imgv);
-			CommonUtils.setVisibiltyGone(sound_off_imgv);
-
-			alphabetPaintingScene.playBackgroundMusic();
-		}
-
-		else if (view.getId() == R.id.save_imgv) {
-
-			alphabetPaintingScene.handleScreenShotPre();
-			saveScreenShot(view);
-
-			// runOnUiThread(new Runnable() {
-			//
-			// @Override
-			// public void run() {
-			//
-			// alphabetPaintingScene.handleScreenShotPost();
-			//
-			// }
-			// });
-
-		} else if (view.getId() == R.id.share_imgv) {
-
-			alphabetPaintingScene.handleScreenShotPre();
-
-			// alphabetPaintingScene.handleScreenShotPre();
-			String savedImagePath = saveScreenShot(view);
-			// runOnUiThread(new Runnable() {
-			//
-			// @Override
-			// public void run() {
-			//
-			// alphabetPaintingScene.handleScreenShotPost();
-			//
-			// }
-			// });
-
-			shareImage(savedImagePath);
-
-		}
-
+	public void restoreInAppTransaction() {
+		mHelper.queryInventoryAsync(mGotInventoryListenerRestorePurchase);
 	}
 
-	private String saveScreenShot(View clickedView) {
-
-		// =============Screen shot from andengine===================
-
-		final String screenshot_from_andengine_imageName = "Fun2Learn_"
-				+ alphabetPaintingScene.getSelectedLetterName() + ".png";
-
-		String sreenshot_andengine_filePath = CommonUtils
-				.findPath(MainActivity.this)
-				+ screenshot_from_andengine_imageName;
-
-		File imagesFolder = new File(CommonUtils.findPath(MainActivity.this));
-
-		if (!imagesFolder.exists())
-			imagesFolder.mkdirs();
-
-		int width = this.mRenderSurfaceView.getWidth();
-		int height = this.mRenderSurfaceView.getHeight();
-
-		ScreenCapture screenCapture = new ScreenCapture();
-
-		AlphabetPaintingScene.scene.getTopLayer().addEntity(screenCapture);
-
-		screenCapture.capture(width, height, sreenshot_andengine_filePath,
-				new IScreenCaptureCallback() {
-
-					@Override
-					public void onScreenCaptured(String pFilePath) {
-
-					}
-
-				});
-
-		if (clickedView.getId() == R.id.save_imgv) {
-			runOnUiThread(new Runnable() {
-
-				@Override
-				public void run() {
-
-					CommonUtils.showToast(
-							MainActivity.this,
-							"Image Saved successfully..."
-									+ CommonUtils.findPath(MainActivity.this)
-									+ screenshot_from_andengine_imageName);
-
-				}
-			});
+	IabHelper.QueryInventoryFinishedListener mGotInventoryListenerRestorePurchase = new IabHelper.QueryInventoryFinishedListener() {
+		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+			if (result.isFailure()) {
+				// handle error here
+			} else {
+				isItemAlreadyPurchased(inventory);
+			}
 		}
+	};
 
-		return CommonUtils.findPath(MainActivity.this)
-				+ screenshot_from_andengine_imageName;
-
-	}
-
-	private void shareImage(String shareImagePath) {
-
-		Uri uriShareImage = Uri.parse(shareImagePath);
-
-		Intent share = new Intent(Intent.ACTION_SEND);
-
-		// If you want to share a png image only, you can do:
-		// setType("image/png"); OR for jpeg: setType("image/jpeg");
-		share.setType("image/*");
-		share.putExtra(Intent.EXTRA_STREAM, uriShareImage);
-
-		startActivity(Intent.createChooser(share, "Share Image!"));
-
-	}
-
-	private LayoutParams createAdViewLayoutParams() {
-		final LayoutParams adViewLayoutParams = new LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT);
-		return adViewLayoutParams;
+	public void isItemAlreadyPurchased(Inventory inventory) {
+		boolean is_purchased_1 = inventory.hasPurchase(getResources().getString(R.string.inapp_purchase_key));
+		if (is_purchased_1) {
+			Toast.makeText(MainActivity.this, "restore purchase transaction successfully", Toast.LENGTH_LONG).show();
+			SharedPrefUtils.putHasPurchased(MainActivity.this, true);
+			showHideAds();
+		} else {
+			Toast.makeText(MainActivity.this, "Please Click on remove button first.Thanks...", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
-	public void showlphabetPaitingView() {
-
-		// showAlphabetPaintLL();
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
+		// Pass on the activity result to the helper for handling
+		if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
+			// not handled, so handle it ourselves (here's where you'd
+			// perform any handling of activity results not related to in-app
+			// billing...
+			super.onActivityResult(requestCode, resultCode, data);
+		} else {
+			Log.d(TAG, "onActivityResult handled by IABUtil.");
+		}
 	}
 
-	class DelaAsyncTask extends AsyncTask<Void, Void, Void> {
-
-		@Override
-		protected Void doInBackground(Void... params) {
-			// TODO Auto-generated method stub
-
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	// Callback for when a purchase is finished
+	IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+		public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+			Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
+			if (result.isFailure()) {
+				complain("Error purchasing: " + result);
+				return;
 			}
-			return null;
+			if (!verifyDeveloperPayload(purchase)) {
+				complain("Error purchasing. Authenticity verification failed.");
+				return;
+			}
+			Log.d(TAG, "Purchase successful.");
+			if (purchase.getSku().equals(getResources().getString(R.string.inapp_purchase_key))) {
+				// bought 1/4 tank of gas. So consume it.
+				Log.d(TAG, "removeAdsPurchase was succesful.. starting consumption.");
+				// CommonUtils
+				// .showToast(MainActivity.this,
+				// " 6th times Thanks !!! Now Enjoy ads free version....");
+				SharedPrefUtils.putHasPurchased(MainActivity.this, true);
+				showHideAds();
+				// mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+			}
 		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-			// TODO Auto-generated method stub
-			super.onPostExecute(result);
-
-			hideLoading();
-
-			if (mainMenuScene != null)
-				mainMenuScene.playBackgroundMusic();
-			// mittiBgSprite.setVelocityY(-300);
-
+	};
+	// Called when consumption is complete
+	IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+		public void onConsumeFinished(Purchase purchase, IabResult result) {
+			Log.d(TAG, "Consumption finished. Purchase: " + purchase + ", result: " + result);
+			// We know this is the "gas" sku because it's the only one we
+			// consume,
+			// so we don't check which sku was consumed. If you have more than
+			// one
+			// sku, you probably should check...
+			if (result.isSuccess()) {
+				// CommonUtils.showToast(MainActivity.this,
+				// "Thanks !!! Now Enjoy ads free version....");
+				SharedPrefUtils.putHasPurchased(MainActivity.this, true);
+				showHideAds();
+				// successfully consumed, so we apply the effects of the item in
+				// our
+				// game world's logic, which in our case means filling the gas
+				// tank a bit
+				Log.d(TAG, "Consumption successful. Provisioning.");
+				alert("You have purchased for removing ads from your app.");
+			} else {
+				complain("Error while consuming: " + result);
+			}
+			Log.d(TAG, "End consumption flow.");
 		}
+	};
+
+	/** Verifies the developer payload of a purchase. */
+	boolean verifyDeveloperPayload(Purchase p) {
+		String payload = p.getDeveloperPayload();
+		/*
+		 * TODO: verify that the developer payload of the purchase is correct.
+		 * It will be the same one that you sent when initiating the purchase.
+		 * 
+		 * WARNING: Locally generating a random string when starting a purchase
+		 * and verifying it here might seem like a good approach, but this will
+		 * fail in the case where the user purchases an item on one device and
+		 * then uses your app on a different device, because on the other device
+		 * you will not have access to the random string you originally
+		 * generated.
+		 * 
+		 * So a good developer payload has these characteristics:
+		 * 
+		 * 1. If two different users purchase an item, the payload is different
+		 * between them, so that one user's purchase can't be replayed to
+		 * another user.
+		 * 
+		 * 2. The payload must be such that you can verify it even when the app
+		 * wasn't the one who initiated the purchase flow (so that items
+		 * purchased by the user on one device work on other devices owned by
+		 * the user).
+		 * 
+		 * Using your own server to store and verify developer payloads across
+		 * app installations is recommended.
+		 */
+		return true;
 	}
 
+	void complain(String message) {
+		Log.e(TAG, "**** IN APP Purchase Error: " + message);
+		alert(message);
+	}
+
+	void alert(String message) {
+		Log.d(TAG, "Showing alert dialog: " + message);
+	}
 }

@@ -1,433 +1,858 @@
 package com.kids.fun2learn;
 
-import org.anddev.andengine.engine.Engine;
-import org.anddev.andengine.entity.scene.Scene;
-import org.anddev.andengine.ui.activity.BaseGameActivity;
+import java.io.File;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import org.andengine.engine.options.EngineOptions;
+import org.andengine.entity.scene.Scene;
+import org.andengine.entity.util.ScreenCapture;
+import org.andengine.entity.util.ScreenCapture.IScreenCaptureCallback;
+import org.andengine.opengl.view.RenderSurfaceView;
+import org.andengine.ui.activity.SimpleBaseGameActivity;
+
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
-import com.appspartan.inappbilling.util.IabHelper;
-import com.appspartan.inappbilling.util.IabResult;
-import com.appspartan.inappbilling.util.Inventory;
-import com.appspartan.inappbilling.util.Purchase;
+import com.aicatopnir.AdController;
+import com.appfireworks.android.listener.AppModuleListener;
+import com.appfireworks.android.track.AppTracker;
+import com.chartboost.sdk.CBLocation;
+import com.chartboost.sdk.Chartboost;
+import com.chartboost.sdk.Libraries.CBLogging.Level;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.kids.fun2learn.adapter.ColorAndTexturePlateImageAdapter;
+import com.kids.fun2learn.adapter.ColorAndTexturePlateImageAdapter.ColorAndTexturePlateCallBackListener;
+import com.kids.fun2learn.adapter.PianoItemsAdapter;
+import com.kids.fun2learn.adapter.PianoItemsAdapter.PianoItemsClickCallBackListener;
+import com.kids.fun2learn.scene.AlphabetPaintingScene;
+import com.kids.fun2learn.scene.AlphabetPuzzleScene;
+import com.kids.fun2learn.scene.CountingNumberPaintingScene;
+import com.kids.fun2learn.scene.InAppPurchaseScene;
+import com.kids.fun2learn.scene.MainMenuScene;
+import com.kids.fun2learn.utils.AdManagerUtils;
 import com.kids.fun2learn.utils.CommonConstants;
 import com.kids.fun2learn.utils.CommonUtils;
+import com.kids.fun2learn.utils.CustomAnimationUtils;
 import com.kids.fun2learn.utils.EngineUtilits;
-import com.kids.fun2learn.utils.NetworkUtils;
+import com.kids.fun2learn.utils.RandomNumberGenerator;
 import com.kids.fun2learn.utils.SharedPrefUtils;
+import com.startapp.android.publish.StartAppAd;
+import com.startapp.android.publish.StartAppSDK;
+import com.startapp.android.publish.banner.Banner;
 
-public class AppsPartanBaseGameActivity extends BaseGameActivity {
-
+public class AppsPartanBaseGameActivity extends SimpleBaseGameActivity implements PianoItemsClickCallBackListener,ColorAndTexturePlateCallBackListener {
+	protected AlphabetPuzzleScene alphabetPuzzleScene;
 	protected MainMenuScene mainMenuScene;
-
-	protected static final String TAG = "Learn2fun IN APP Purchase";
-
-	// The helper object
-	protected IabHelper mHelper;
-
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		// setContentView(R.layout.activity_main);
-
-		// setUpInapp();
-
-	}
-
-	protected void showInAppPurchaseDialog() {
-
-		// Creating alert Dialog with three Buttons
-
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(
-				AppsPartanBaseGameActivity.this);
-
-		// Setting Dialog Title
-		alertDialog.setTitle("Save File...");
-
-		// Setting Dialog Message
-		alertDialog.setMessage("Do you want to save this file?");
-
-		// Setting Icon to Dialog
-		alertDialog.setIcon(R.drawable.save);
-
-		// Setting Positive Yes Button
-		alertDialog.setPositiveButton("Buy",
-				new DialogInterface.OnClickListener() {
-
-					public void onClick(DialogInterface dialog, int which) {
-						// User pressed Cancel button. Write Logic Here
-						// Toast.makeText(getApplicationContext(),
-						// "You clicked on Buy", Toast.LENGTH_SHORT)
-						// .show();
-
-						if (NetworkUtils.isConnected(getApplicationContext())) {
-
-							makeInAppPurchase();
-
-						} else {
-
-							CommonUtils.showToast(getApplicationContext(),
-									CommonConstants.NO_NETWORK_MESSAGE);
-						}
-					}
-				});
-		// Setting Positive Yes Button
-		alertDialog.setNeutralButton("Restore",
-				new DialogInterface.OnClickListener() {
-
-					public void onClick(DialogInterface dialog, int which) {
-						// User pressed No button. Write Logic Here
-						// Toast.makeText(getApplicationContext(),
-						// "You clicked on Restore", Toast.LENGTH_SHORT).show();
-
-						if (NetworkUtils.isConnected(getApplicationContext())) {
-
-							restoreInAppTransaction();
-
-						} else {
-
-							CommonUtils.showToast(getApplicationContext(),
-									CommonConstants.NO_NETWORK_MESSAGE);
-						}
-
-					}
-				});
-		// Setting Positive "Cancel" Button
-		alertDialog.setNegativeButton("Exit Game",
-				new DialogInterface.OnClickListener() {
-
-					public void onClick(DialogInterface dialog, int which) {
-						// User pressed Cancel button. Write Logic Here
-						// Toast.makeText(getApplicationContext(),
-						// "You clicked on Cancel", Toast.LENGTH_SHORT)
-						// .show();
-						exitAndFinishGame();
-					}
-				});
-		// Showing Alert Message
-		alertDialog.show();
-
-	}
-
-	protected void exitAndFinishGame() {
-		// it will be overridden
-	}
-
-	protected void showHideAds() {
-
-		// it will be overridden
-	}
-
-	// Listener that's called when we finish querying the items and
-	// subscriptions we own
-	IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-		public void onQueryInventoryFinished(IabResult result,
-				Inventory inventory) {
-			Log.d(TAG, "Query inventory finished.");
-			if (result.isFailure()) {
-				complain("Failed to query inventory: " + result);
-				return;
-			}
-
-			Log.d(TAG, "Query inventory was successful.");
-
-			/*
-			 * Check for items we own. Notice that for each purchase, we check
-			 * the developer payload to see if it's correct! See
-			 * verifyDeveloperPayload().
-			 */
-
-			// Check for gas delivery -- if we own gas, we should fill up the
-			// tank immediately
-
-			if (inventory.hasPurchase(getResources().getString(
-					R.string.inapp_purchase_key))) {
-
-				SharedPrefUtils.putHasPurchased(
-						AppsPartanBaseGameActivity.this, true);
-				showHideAds();
-
-			} else {
-
-				Purchase removeAdsPurchase = inventory
-						.getPurchase(getResources().getString(
-								R.string.inapp_purchase_key));
-
-				if (removeAdsPurchase != null
-						&& verifyDeveloperPayload(removeAdsPurchase)) {
-					System.out
-							.println("Kp inapp : User has already purchased this item for removing ads. ");
-					Log.d(TAG,
-							"User has already purchased this item for removing ads. Write the Logic for removign Ads.");
-					mHelper.consumeAsync(
-							inventory.getPurchase(getResources().getString(
-									R.string.inapp_purchase_key)),
-							mConsumeFinishedListener);
-					return;
-				}
-
-				Log.d(TAG,
-						"Initial inventory query finished; enabling main UI.");
-			}
-		}
-
-	};
-
-	public void makeInAppPurchase() {
-		Log.d(TAG, "Buy gas button clicked.");
-
-		/*
-		 * TODO: for security, generate your payload here for verification. See
-		 * the comments on verifyDeveloperPayload() for more info. Since this is
-		 * a SAMPLE, we just use an empty string, but on a production app you
-		 * should carefully generate this.
-		 */
-		String payload = "";
-
-		mHelper.launchPurchaseFlow(this,
-				getResources().getString(R.string.inapp_purchase_key), 10000,
-				mPurchaseFinishedListener, payload);
-	}
-
-	private void setUpInapp() {
-
-		mHelper = new IabHelper(this, getResources().getString(
-				R.string.base64EncodedPublicKey));
-
-		// enable debug logging (for a production application, you should set
-		// this to false).
-		mHelper.enableDebugLogging(true);
-
-		// Start setup. This is asynchronous and the specified listener
-		// will be called once setup completes.
-		Log.d(TAG, "Starting setup.");
-		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-			public void onIabSetupFinished(IabResult result) {
-				Log.d(TAG, "Setup finished.");
-
-				if (!result.isSuccess()) {
-					// Oh noes, there was a problem.
-					complain("Problem setting up in-app billing: " + result);
-					return;
-				}
-
-				// Hooray, IAB is fully set up. Now, let's get an inventory of
-				// stuff we own.
-				Log.d(TAG, "Setup successful. Querying inventory.");
-				mHelper.queryInventoryAsync(mGotInventoryListener);
-			}
-		});
-
-	}
-
-	public void restoreInAppTransaction() {
-
-		mHelper.queryInventoryAsync(mGotInventoryListenerRestorePurchase);
-
-	}
-
-	IabHelper.QueryInventoryFinishedListener mGotInventoryListenerRestorePurchase = new IabHelper.QueryInventoryFinishedListener() {
-		public void onQueryInventoryFinished(IabResult result,
-				Inventory inventory) {
-
-			if (result.isFailure()) {
-				// handle error here
-			} else {
-				isItemAlreadyPurchased(inventory);
-			}
-		}
-	};
-
-	public void isItemAlreadyPurchased(Inventory inventory) {
-
-		boolean is_purchased_1 = inventory.hasPurchase(getResources()
-				.getString(R.string.inapp_purchase_key));
-
-		if (is_purchased_1) {
-
-			Toast.makeText(AppsPartanBaseGameActivity.this,
-					"restore purchase suceefully", Toast.LENGTH_LONG).show();
-
-			SharedPrefUtils.putHasPurchased(AppsPartanBaseGameActivity.this,
-					true);
-			showHideAds();
-
-		} else {
-
-			Toast.makeText(AppsPartanBaseGameActivity.this,
-					"Please  purchase item first", Toast.LENGTH_LONG).show();
-
-		}
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + ","
-				+ data);
-
-		// Pass on the activity result to the helper for handling
-		if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
-			// not handled, so handle it ourselves (here's where you'd
-			// perform any handling of activity results not related to in-app
-			// billing...
-			super.onActivityResult(requestCode, resultCode, data);
-		} else {
-			Log.d(TAG, "onActivityResult handled by IABUtil.");
-		}
-	}
-
-	// Callback for when a purchase is finished
-	IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-		public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-			Log.d(TAG, "Purchase finished: " + result + ", purchase: "
-					+ purchase);
-			if (result.isFailure()) {
-				complain("Error purchasing: " + result);
-				return;
-			}
-			if (!verifyDeveloperPayload(purchase)) {
-				complain("Error purchasing. Authenticity verification failed.");
-				return;
-			}
-
-			Log.d(TAG, "Purchase successful.");
-
-			if (purchase.getSku().equals(
-					getResources().getString(R.string.inapp_purchase_key))) {
-				// bought 1/4 tank of gas. So consume it.
-				Log.d(TAG,
-						"removeAdsPurchase was succesful.. starting consumption.");
-				mHelper.consumeAsync(purchase, mConsumeFinishedListener);
-			}
-		}
-	};
-
-	// Called when consumption is complete
-	IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-		public void onConsumeFinished(Purchase purchase, IabResult result) {
-			Log.d(TAG, "Consumption finished. Purchase: " + purchase
-					+ ", result: " + result);
-
-			// We know this is the "gas" sku because it's the only one we
-			// consume,
-			// so we don't check which sku was consumed. If you have more than
-			// one
-			// sku, you probably should check...
-			if (result.isSuccess()) {
-
-				SharedPrefUtils.putHasPurchased(
-						AppsPartanBaseGameActivity.this, true);
-
-				showHideAds();
-
-				// successfully consumed, so we apply the effects of the item in
-				// our
-				// game world's logic, which in our case means filling the gas
-				// tank a bit
-				Log.d(TAG, "Consumption successful. Provisioning.");
-				System.out
-						.println("Kp inapp : You have purchased for removing ads from your app. ");
-				alert("You have purchased for removing ads from your app.");
-			} else {
-				complain("Error while consuming: " + result);
-			}
-			Log.d(TAG, "End consumption flow.");
-		}
-	};
-
-	/** Verifies the developer payload of a purchase. */
-	boolean verifyDeveloperPayload(Purchase p) {
-		String payload = p.getDeveloperPayload();
-
-		/*
-		 * TODO: verify that the developer payload of the purchase is correct.
-		 * It will be the same one that you sent when initiating the purchase.
-		 * 
-		 * WARNING: Locally generating a random string when starting a purchase
-		 * and verifying it here might seem like a good approach, but this will
-		 * fail in the case where the user purchases an item on one device and
-		 * then uses your app on a different device, because on the other device
-		 * you will not have access to the random string you originally
-		 * generated.
-		 * 
-		 * So a good developer payload has these characteristics:
-		 * 
-		 * 1. If two different users purchase an item, the payload is different
-		 * between them, so that one user's purchase can't be replayed to
-		 * another user.
-		 * 
-		 * 2. The payload must be such that you can verify it even when the app
-		 * wasn't the one who initiated the purchase flow (so that items
-		 * purchased by the user on one device work on other devices owned by
-		 * the user).
-		 * 
-		 * Using your own server to store and verify developer payloads across
-		 * app installations is recommended.
-		 */
-
-		return true;
-	}
-
-	void complain(String message) {
-		Log.e(TAG, "**** IN APP Purchase Error: " + message);
-		alert(message);
-	}
-
-	void alert(String message) {
-		Log.d(TAG, "Showing alert dialog: " + message);
-		// TextView resultTv = (TextView) findViewById(R.id.textView_result);
-		// resultTv.setText("Result : " + message);
-	}
+	protected CountingNumberPaintingScene countingNumberPaintingScene;
+	protected AlphabetPaintingScene alphabetPaintingScene;
+	protected InAppPurchaseScene inAppPurchaseScene;
+	/** The interstitial ad. */
+	protected InterstitialAd interstitialAd;
+	private int gap = 10;
 
 	public MainMenuScene getMainMenuScene() {
 		return mainMenuScene;
 	}
 
-	public AlphabetPaintingScene alphabetPaintingScene;
+	public CountingNumberPaintingScene getCountingNumberPaintingScene() {
+		return countingNumberPaintingScene;
+	}
+
+	public void setCountingNumberPaintingScene(CountingNumberPaintingScene countingNumberPaintingScene) {
+		this.countingNumberPaintingScene = countingNumberPaintingScene;
+	}
 
 	public AlphabetPaintingScene getAlphabetPaintingScene() {
 		return alphabetPaintingScene;
 	}
 
-	@Override
-	public Engine onLoadEngine() {
-
-		Engine engine = EngineUtilits.onLoadEngine(this);
-
-		return engine;
+	public void setAlphabetPaintingScene(AlphabetPaintingScene alphabetPaintingScene) {
+		this.alphabetPaintingScene = alphabetPaintingScene;
 	}
 
 	@Override
-	public void onLoadResources() {
+	public EngineOptions onCreateEngineOptions() {
+		return EngineUtilits.onLoadEngine(this);
+	}
 
+	@Override
+	protected void onCreateResources() {}
+
+	@Override
+	protected Scene onCreateScene() {
 		SceneManager.init(this);
-
 		mainMenuScene = null;
-
-		mainMenuScene = MainMenuScene.getMainMenuScene(this);
-
+		mainMenuScene = new MainMenuScene(this);
 		alphabetPaintingScene = null;
-		alphabetPaintingScene = AlphabetPaintingScene
-				.getAlphabetPaintingScene(this);
+		alphabetPaintingScene = new AlphabetPaintingScene(this);
+		countingNumberPaintingScene = null;
+		countingNumberPaintingScene = new CountingNumberPaintingScene(this);
+		inAppPurchaseScene = null;
+		inAppPurchaseScene = new InAppPurchaseScene(this);
+		hideLoading();
+		alphabetPuzzleScene = null;
+		alphabetPuzzleScene = new AlphabetPuzzleScene(this);
+		return alphabetPuzzleScene.getScene();
+	}
 
+	public LinearLayout eraser_popup_ll, btn_play_ll, game_parent_child_rl;
+	private LinearLayout PyoanoItemContainerLL;
+	public RelativeLayout game_parent_rl, top_ads_rl, bottom_ads_rl, loading_rl;
+	private LinearLayout playBtns[] = new LinearLayout[6];
+	private int playBtnsAnimCords[] = { -0, 5, 6, 7, 8, 9, 10, 11 };
+	ImageView loading_rotating_circle_imgv, sound_on_imgv, sound_off_imgv;
+	private View vv;
+	private View ads_spacing_view;
+
+	protected void onSetContentView() {
+		SharedPrefUtils.setSoundSetiings(this, true);
+		SharedPrefUtils.setCountingScreenSoundSetiings(this, true);
+		final RelativeLayout relativeLayout = new RelativeLayout(this);
+		final FrameLayout.LayoutParams relativeLayoutLayoutParams = new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+		this.mRenderSurfaceView = new RenderSurfaceView(this);
+		this.mRenderSurfaceView.setRenderer(this.mEngine, this);
+		final LayoutParams surfaceViewLayoutParams = new RelativeLayout.LayoutParams(super.createSurfaceViewLayoutParams());
+		((android.widget.RelativeLayout.LayoutParams) surfaceViewLayoutParams).addRule(RelativeLayout.CENTER_IN_PARENT);
+		// ADD MY NEW VIEW ABOVE
+		LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		vv = vi.inflate(R.layout.activity_main, null);
+		// THIS IS MY CUSTOM VIEW
+		relativeLayout.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		// relativeLayout.setBackgroundColor(Color.RED);
+		relativeLayout.addView(this.mRenderSurfaceView, surfaceViewLayoutParams); // ANDENGINE
+		// VIEW
+		relativeLayout.addView(vv, createAdViewLayoutParams()); // MYVIEW
+		this.setContentView(relativeLayout, relativeLayoutLayoutParams);
+		initializeUi(vv);
+		ShowLoading();
+		loadAdmobInterstitial();
+		setSoundBtnsVisibilty();
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			showRandonBannerAds();
+		}
+	}
+
+	private void loadAdmobBannerAds() {
+		for (int i = 0; i < bottom_ads_rl.getChildCount(); i++) {
+			bottom_ads_rl.removeViewAt(i);
+		}
+		bottom_ads_rl.invalidate();
+		AdView admobAdView = new AdView(AppsPartanBaseGameActivity.this);
+		admobAdView.setAdSize(AdSize.SMART_BANNER);
+		admobAdView.setAdUnitId(getResources().getString(R.string.admod_banner_ad_id));
+		AdRequest adRequest = new AdRequest.Builder().build();
+		admobAdView.loadAd(adRequest);
+		AdView.LayoutParams adViewParams = new AdView.LayoutParams(AdView.LayoutParams.WRAP_CONTENT, AdView.LayoutParams.WRAP_CONTENT);
+		bottom_ads_rl.addView(admobAdView, adViewParams);
+	}
+
+	private StartAppAd startAppAd = new StartAppAd(this);
+
+	private void loadStartAppBannerAds() {
+		for (int i = 0; i < bottom_ads_rl.getChildCount(); i++) {
+			bottom_ads_rl.removeViewAt(i);
+		}
+		bottom_ads_rl.invalidate();
+		StartAppSDK.init(this, getResources().getString(R.string.startapp_developer_id), getResources().getString(R.string.startapp_app_id), true);
+		/**
+		 * Add banner programmatically (within Java code, instead of within the
+		 * layout xml)
+		 **/
+		// Create new StartApp banner
+		Banner startAppBanner = new Banner(this);
+		RelativeLayout.LayoutParams bannerParameters = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		bannerParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		// Add the banner to the main layout
+		bottom_ads_rl.addView(startAppBanner, bannerParameters);
+	}
+
+	// ===air push ads
+	private void loadAirPushAds() {
+		com.exwau.fxlje167198.AdView adView = (com.exwau.fxlje167198.AdView) vv.findViewById(R.id.airpush_adview);
+		adView.setAdListener(adlistener);
+	}
+
+	com.exwau.fxlje167198.AdListener.BannerAdListener adlistener = new com.exwau.fxlje167198.AdListener.BannerAdListener() {
+		@Override
+		public void onAdClickListener() {
+			System.out.println("Airpush onAdClickListener");
+			// This will get called when ad is clicked.
+		}
+
+		@Override
+		public void onAdLoadedListener() {
+			System.out.println("Airpush onAdLoadedListener");
+			// This will get called when an ad has loaded.
+		}
+
+		@Override
+		public void onAdLoadingListener() {
+			System.out.println("Airpush onAdLoadingListener");
+			// This will get called when a rich media ad is loading.
+		}
+
+		@Override
+		public void onAdExpandedListner() {
+			System.out.println("Airpush onAdExpandedListner");
+			// This will get called when an ad is showing on a user's screen.
+			// This may cover the whole UI.
+		}
+
+		@Override
+		public void onCloseListener() {
+			System.out.println("Airpush onCloseListener");
+			// This will get called when an ad is closing/resizing from an
+			// expanded state.
+		}
+
+		@Override
+		public void onErrorListener(String message) {
+			System.out.println("Airpush onErrorListener" + message);
+			// This will get called when any error has occurred. This will also
+			// get called if the SDK notices any integration mistakes.
+		}
+
+		@Override
+		public void noAdAvailableListener() {
+			System.out.println("Airpush noAdAvailableListener");
+			// this will get called when ad is not available
+		}
+	};
+
+	protected void showHideAds() {
+		if (SharedPrefUtils.getIsPurchased(this)) {
+			// remove all ads of app
+			ads_spacing_view.setVisibility(View.GONE);
+			top_ads_rl.setVisibility(View.GONE);
+			bottom_ads_rl.setVisibility(View.GONE);
+			btn_play_ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, getResources().getDimensionPixelSize(R.dimen.btn_play_bg_height_adsfree)));
+		} else {
+			ads_spacing_view.setVisibility(View.GONE);
+		}
+	}
+
+	public void loadAdmobInterstitial() {
+		interstitialAd = AdManagerUtils.loadInterstitial(this);
+	}
+
+	/** Called when the Show Interstitial button is clicked. */
+	public void showAdmobInterstitialAds() {
+		if (!SharedPrefUtils.getIsPurchased(this)) {
+			AdRequest adRequest = new AdRequest.Builder().build();
+			// Load the interstitial ad.
+			interstitialAd.loadAd(adRequest);
+			interstitialAd.show();
+		}
+	}
+
+	com.google.android.gms.ads.AdView mAdView;
+
+	private void initializeUi(View vv) {
+		bottom_ads_rl = (RelativeLayout) vv.findViewById(R.id.bottom_ads_rl);
+		ads_spacing_view = vv.findViewById(R.id.ads_spacing_view);
+		sound_on_imgv = (ImageView) vv.findViewById(R.id.sound_on_imgv);
+		sound_off_imgv = (ImageView) vv.findViewById(R.id.sound_off_imgv);
+		loading_rotating_circle_imgv = (ImageView) vv.findViewById(R.id.loading_rotating_circle_imgv);
+		loading_rl = (RelativeLayout) vv.findViewById(R.id.loading_rl);
+		top_ads_rl = (RelativeLayout) vv.findViewById(R.id.top_ads_rl);
+		bottom_ads_rl = (RelativeLayout) vv.findViewById(R.id.bottom_ads_rl);
+		eraser_popup_ll = (LinearLayout) vv.findViewById(R.id.eraser_popup_ll);
+		btn_play_ll = (LinearLayout) vv.findViewById(R.id.btn_play_ll);
+		game_parent_child_rl = (LinearLayout) vv.findViewById(R.id.game_parent_child_rl);
+		game_parent_rl = (RelativeLayout) vv.findViewById(R.id.game_parent_rl);
+		initPlayBtns(vv);
+		attachColorTexturePlate(vv);
+	}
+
+	public void ShowLoading() {
+		loading_rl.setVisibility(View.VISIBLE);
+		bottom_ads_rl.setVisibility(View.INVISIBLE);
+		top_ads_rl.setVisibility(View.INVISIBLE);
+		Animation rotation_circle = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_image);
+		loading_rotating_circle_imgv.clearAnimation();
+		loading_rotating_circle_imgv.startAnimation(rotation_circle);
+	}
+
+	public void hideLoading() {
+		new DelaAsyncTask().execute();
+	}
+
+	class DelaAsyncTask extends AsyncTask<Void, Void, Void> {
+		@Override
+		protected Void doInBackground(Void... params) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+			CustomAnimationUtils.removeLoadingAnimationEnd(loading_rl);
+			onShowAplhabetPuzzleScene();
+		}
+	}
+
+	public LinearLayout colorPlateLinearLayout, texture_PlateLinearLayout;
+	HorizontalScrollView horizontalScrollView;
+	private ColorAndTexturePlateImageAdapter colorPlateImageAdapter;
+	private ColorAndTexturePlateImageAdapter texturePlateImageAdapter;
+
+	private void attachColorTexturePlate(View vv) {
+		colorPlateLinearLayout = (LinearLayout) vv.findViewById(R.id.color_ll);
+		texture_PlateLinearLayout = (LinearLayout) vv.findViewById(R.id.texuture_ll);
+		horizontalScrollView = (HorizontalScrollView) vv.findViewById(R.id.texuture_color_horizontalScrollView1);
+		colorPlateImageAdapter = new ColorAndTexturePlateImageAdapter(this, CommonConstants.COLOR_PLATE);
+		texturePlateImageAdapter = new ColorAndTexturePlateImageAdapter(this, CommonConstants.TEXTURE_PLATE);
+		addViewsTOLayout(colorPlateImageAdapter, colorPlateLinearLayout);
+		addViewsTOLayout(texturePlateImageAdapter, texture_PlateLinearLayout);
+	}
+
+	private void addViewsTOLayout(ColorAndTexturePlateImageAdapter colortexturePlateImageAdapter, LinearLayout plateLinearLayout) {
+		plateLinearLayout.removeAllViews();
+		plateLinearLayout.invalidate();
+		for (int i = 0; i < colortexturePlateImageAdapter.getCount(); i++) {
+			View view = colortexturePlateImageAdapter.getView(i, null, null);
+			plateLinearLayout.addView(view);
+		}
+	}
+
+	private void initPlayBtns(View vv) {
+		// ======Animation Array for play btn==========
+		LinearLayout playBtn = (LinearLayout) vv.findViewById(R.id.btn_play_ll1);
+		LinearLayout playBtn1 = (LinearLayout) vv.findViewById(R.id.btn_play_ll2);
+		LinearLayout playBtn2 = (LinearLayout) vv.findViewById(R.id.btn_play_ll4);
+		LinearLayout playBtn3 = (LinearLayout) vv.findViewById(R.id.btn_play_ll3);
+		LinearLayout playBtn4 = (LinearLayout) vv.findViewById(R.id.btn_play_ll5);
+		LinearLayout playBtn6 = (LinearLayout) vv.findViewById(R.id.btn_play_ll6);
+		playBtns[0] = playBtn;
+		playBtns[1] = playBtn1;
+		playBtns[2] = playBtn2;
+		playBtns[3] = playBtn3;
+		playBtns[4] = playBtn4;
+		playBtns[5] = playBtn6;
+	}
+
+	public void onShowMainMenuScene() {
+		CommonUtils.setVisibiltyGone(game_parent_rl);
+		try {
+			mainMenuScene.playBackgroundMusic();
+			if (mainMenuScene.birdAnimatedSprite.isAnimationRunning()) {
+				mainMenuScene.playBirdSound();
+			}
+		} catch (Exception exception) {}
+		if (SharedPrefUtils.getIsPurchased(this)) {
+			showHideAds();
+		} else {
+			top_ads_rl.setVisibility(View.INVISIBLE);
+			bottom_ads_rl.setVisibility(View.VISIBLE);
+		}
+	}
+
+	public void onShowAplhabetScene() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonUtils.setVisibiltyOn(game_parent_rl);
+				animatePlayBtn(playBtns, playBtnsAnimCords, RandomNumberGenerator.genarateRandomNumber(2));
+				attachPianoButtons(CommonConstants.ALPHABETS_PIANO_ITEMS);
+				setSoundBtnsVisibilty();
+				getAlphabetPaintingScene().setScenePosition();
+				if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+					showRandonBannerAds();
+				}
+			}
+		});
+	}
+
+	public void onShowAplhabetPuzzleScene() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				top_ads_rl.setVisibility(View.VISIBLE);
+				bottom_ads_rl.setVisibility(View.VISIBLE);
+				CommonUtils.setVisibiltyOn(game_parent_rl);
+				animatePlayBtn(playBtns, playBtnsAnimCords, RandomNumberGenerator.genarateRandomNumber(2));
+				attachPianoButtons(CommonConstants.ALPHABETS_PIANO_ITEMS);
+				setSoundBtnsVisibilty();
+				getAlphabetPaintingScene().setScenePosition();
+				if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+					showRandonBannerAds();
+				}
+			}
+		});
+	}
+
+	private void showRandonBannerAds() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				int random = RandomNumberGenerator.genarateRandomNumber(2);
+				if (random == 0) {
+					loadAdmobBannerAds();
+				} else {
+					loadStartAppBannerAds();
+				}
+				loadLeadboltIBannerAds();
+			}
+		});
 	}
 
 	@Override
-	public Scene onLoadScene() {
-
-
-		return mainMenuScene.getScene();
-	}
-
-	@Override
-	public void onLoadComplete() {
+	public void onBackPressed() {
 		// TODO Auto-generated method stub
-
+		if (SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			startAppAd.onBackPressed();
+		}
+		try {
+			mainMenuScene.resetDoorSprite();
+		} catch (Exception exception) {}
+		if (mainMenuScene != null && mainMenuScene.getScene() != null && SceneManager.getScene() == mainMenuScene.getScene()) {
+			mainMenuScene.stopBackgroundMusic();
+			mainMenuScene.stopBirdSound();
+			if (SharedPrefUtils.getIsPurchased(this)) {
+				try {
+					alphabetPaintingScene.unloadScene();
+				} catch (Exception exception) {}
+				try {
+					countingNumberPaintingScene.unloadScene();
+				} catch (Exception exception) {}
+				finish();
+			} else {
+				mainMenuScene.getScene().setChildScene(inAppPurchaseScene.getScene(), false, true, true);
+				SceneManager.setScene(mainMenuScene.getScene());
+			}
+		} else if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+			try {
+				alphabetPaintingScene.stopBackgroundMusic();
+			} catch (Exception exception) {}
+			alphabetPaintingScene.handleScreenShotPost();
+			onShowMainMenuScene();
+			SceneManager.setScene(getMainMenuScene().getScene());
+		} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+			try {
+				countingNumberPaintingScene.stopBackgroundMusic();
+			} catch (Exception exception) {}
+			countingNumberPaintingScene.handleScreenShotPost();
+			onShowMainMenuScene();
+			SceneManager.setScene(getMainMenuScene().getScene());
+		}
+		showRandomInterstitial();
 	}
 
+	public void showRandomInterstitial() {
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					int random = RandomNumberGenerator.genarateRandomNumber(2);
+					showChartBoostInterStitial();
+				}
+			});
+		}
+	}
+
+	private void loadChartBoost() {
+		Chartboost.startWithAppId(this, getResources().getString(R.string.chartboost_App_ID), getResources().getString(R.string.chartboost_App_Signature));
+		Chartboost.setLoggingLevel(Level.ALL);
+		Chartboost.onCreate(this);
+	}
+
+	private void showChartBoostInterStitial() {
+		Chartboost.showInterstitial(CBLocation.LOCATION_LEADERBOARD);
+	}
+
+	private void showStartAppInterstitial() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				CommonUtils.showToast(AppsPartanBaseGameActivity.this, "loading nd showing showing");
+			}
+		});
+		// StartAppSDK.init(this, "Your Developer Id", "Your App ID", true);
+		StartAppSDK.init(this, getResources().getString(R.string.startapp_developer_id_interstitial), getResources().getString(R.string.startapp_app_id_interstitial), true);
+		startAppAd.showAd(); // show the ad
+		startAppAd.loadAd(); // load the next ad
+	}
+
+	private void loadLeadboltIBannerAds() {
+		AppTracker.startSession(this, getResources().getString(R.string.leadbolt_API_Key), new AppModuleListener() {
+			@Override
+			public void onModuleFailed() {
+				LB_BANNER_ADS = new AdController(act, getResources().getString(R.string.leadbolt_BannerAds_section_id));
+				LB_BANNER_ADS.loadAd();
+			}
+
+			@Override
+			public void onModuleLoaded() {}
+
+			@Override
+			public void onModuleClosed() {}
+
+			@Override
+			public void onModuleCached() {}
+		});
+	}
+
+	private Activity act = this;
+	private AdController interstitial;
+	private AdController LB_BANNER_ADS;
+
+	private void showLeadboltInterstitial() {
+		AppTracker.startSession(this, getResources().getString(R.string.leadbolt_API_Key), new AppModuleListener() {
+			@Override
+			public void onModuleFailed() {
+				interstitial = new AdController(act, getResources().getString(R.string.leadbolt_interstitial_section_id));
+				interstitial.loadAd();
+			}
+
+			@Override
+			public void onModuleLoaded() {}
+
+			@Override
+			public void onModuleClosed() {}
+
+			@Override
+			public void onModuleCached() {}
+		});
+	}
+
+	public void onShowCountingNumberScene() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				getCountingNumberPaintingScene().setScenePosition();
+				CommonUtils.setVisibiltyOn(game_parent_rl);
+				animatePlayBtn(playBtns, playBtnsAnimCords, RandomNumberGenerator.genarateRandomNumber(2));
+				attachPianoButtons(CommonConstants.COUNTING_NUMBERS_PIANO_ITEMS);
+				getCountingNumberPaintingScene().playBackgroundMusic();
+				setSoundBtnsVisibilty();
+				if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+					showRandonBannerAds();
+				}
+			}
+		});
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			loadChartBoost();
+			Chartboost.onStart(this);
+		}
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			Chartboost.onStop(this);
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			startAppAd.onPause();
+			if (!isFinishing()) {
+				AppTracker.pause(getApplicationContext());
+			}
+			Chartboost.onPause(this);
+		}
+		if (alphabetPaintingScene != null) {
+			if (SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+				alphabetPaintingScene.stopBackgroundMusic();
+			}
+		}
+		if (mainMenuScene != null) {
+			if (SceneManager.getScene() == mainMenuScene.getScene()) {
+				mainMenuScene.pauseBirdSound();
+				mainMenuScene.stopBackgroundMusic();
+			}
+		}
+		if (countingNumberPaintingScene != null) {
+			if (SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+				countingNumberPaintingScene.stopBackgroundMusic();
+			}
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (!SharedPrefUtils.getIsPurchased(AppsPartanBaseGameActivity.this)) {
+			startAppAd.onResume();
+			AppTracker.resume(getApplicationContext());
+			Chartboost.onResume(this);
+		}
+		if (alphabetPaintingScene != null) {
+			if (SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+				alphabetPaintingScene.playBackgroundMusic();
+			}
+		}
+		if (mainMenuScene != null) {
+			if (SceneManager.getScene() == mainMenuScene.getScene()) {
+				mainMenuScene.replayBirdSound();
+				mainMenuScene.playBackgroundMusic();
+			}
+		}
+		if (countingNumberPaintingScene != null) {
+			if (SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+				countingNumberPaintingScene.playBackgroundMusic();
+			}
+		}
+	}
+
+	private void animatePlayBtn(View view[], int animTranscordToX[], int random) {
+		// CustomAnimationUtils.CustomScaleAnimation(btn_play_ll);
+		btn_play_ll.clearAnimation();
+		if (btn_play_ll.getChildCount() > 0) {
+			for (int i = 0; i < playBtns.length; i++) {
+				btn_play_ll.removeView(playBtns[i]);
+			}
+		}
+		for (int i = 0; i < playBtns.length; i++) {
+			playBtns[i].setVisibility(View.INVISIBLE);
+		}
+		for (int i = 0; i < playBtns.length; i++) {
+			btn_play_ll.addView(playBtns[i]);
+		}
+		CustomAnimationUtils customAnimationUtils = new CustomAnimationUtils(this, view, animTranscordToX, null, random);
+		customAnimationUtils.startAnimationTimer(50, 100);
+	}
+
+	private LayoutParams createAdViewLayoutParams() {
+		final LayoutParams adViewLayoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+		return adViewLayoutParams;
+	}
+
+	protected void attachPianoButtons(int[] PIANO_ITEMS) {
+		PyoanoItemContainerLL = (LinearLayout) vv.findViewById(R.id.piano_btn_ll);
+		try {
+			PyoanoItemContainerLL.removeAllViews();
+			PyoanoItemContainerLL.invalidate();
+		} catch (Exception exception) {}
+		PianoItemsAdapter pianoItemsAdapter = new PianoItemsAdapter(this, PIANO_ITEMS);
+		View pianoItemItemsViews[] = new View[PIANO_ITEMS.length];
+		for (int i = 0; i < PIANO_ITEMS.length; i++) {
+			View view = pianoItemsAdapter.getView(i, null, null);
+			pianoItemItemsViews[i] = view;
+		}
+		for (int i = 0; i < PIANO_ITEMS.length; i++) {
+			PyoanoItemContainerLL.addView(pianoItemItemsViews[i]);
+		}
+	}
+
+	@Override
+	public void onPianoActionUp(int position) {
+		CommonUtils.setVisibiltyGone(eraser_popup_ll);
+		CommonUtils.setVisibiltyGone(colorPlateLinearLayout);
+		CommonUtils.setVisibiltyGone(texture_PlateLinearLayout);
+		if (alphabetPaintingScene != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+			alphabetPaintingScene.onPianoButtonActionUp(position);
+		} else if (countingNumberPaintingScene != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+			countingNumberPaintingScene.onPianoButtonActionUp(position);
+		} else if (alphabetPuzzleScene != null && SceneManager.getScene() == alphabetPuzzleScene.getScene()) {
+			alphabetPuzzleScene.onPianoButtonActionUp(position);
+		}
+	}
+
+	@Override
+	public void onPianoActionDown() {
+		if (alphabetPaintingScene != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+			alphabetPaintingScene.onPianoButtonActiondown();
+		}
+	}
+
+	public void onClickBtn(View view) {
+		switch (view.getId()) {
+			case R.id.eraser_imgv:
+				CommonUtils.setVisibiltyGone(texture_PlateLinearLayout);
+				CommonUtils.setVisibiltyGone(colorPlateLinearLayout);
+				CommonUtils.setVisibilty(eraser_popup_ll);
+				break;
+			case R.id.color_imgv:
+				CommonUtils.setVisibiltyGone(eraser_popup_ll);
+				CommonUtils.setVisibiltyGone(texture_PlateLinearLayout);
+				CommonUtils.setVisibilty(colorPlateLinearLayout);
+				break;
+			case R.id.texture_imgv:
+				CommonUtils.setVisibiltyGone(eraser_popup_ll);
+				CommonUtils.setVisibiltyGone(colorPlateLinearLayout);
+				CommonUtils.setVisibilty(texture_PlateLinearLayout);
+				break;
+			case R.id.eraser_left_imgv:
+				// it erarese by touching
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					alphabetPaintingScene.erasePainting();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					countingNumberPaintingScene.erasePainting();
+				}
+				CommonUtils.setVisibiltyGone(eraser_popup_ll);
+				break;
+			case R.id.eraser_right_imgv:
+				// it erarese by one click go
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					alphabetPaintingScene.eraseWholePainting();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					countingNumberPaintingScene.eraseWholePainting();
+				}
+				CommonUtils.setVisibiltyGone(eraser_popup_ll);
+				break;
+			case R.id.sound_on_imgv:
+				CommonUtils.setVisibilty(sound_off_imgv);
+				CommonUtils.setVisibiltyGone(sound_on_imgv);
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					SharedPrefUtils.setSoundSetiings(this, false);
+					alphabetPaintingScene.stopBackgroundMusic();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					SharedPrefUtils.setCountingScreenSoundSetiings(this, false);
+					countingNumberPaintingScene.stopBackgroundMusic();
+				}
+				break;
+			case R.id.sound_off_imgv:
+				CommonUtils.setVisibilty(sound_on_imgv);
+				CommonUtils.setVisibiltyGone(sound_off_imgv);
+				SharedPrefUtils.setSoundSetiings(this, true);
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					SharedPrefUtils.setSoundSetiings(this, true);
+					alphabetPaintingScene.playBackgroundMusic();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					SharedPrefUtils.setCountingScreenSoundSetiings(this, true);
+					countingNumberPaintingScene.playBackgroundMusic();
+				}
+				break;
+			case R.id.save_imgv:
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					alphabetPaintingScene.handleScreenShotPre();
+					final String screenshot_from_andengine_imageName = "Fun2Learn_" + alphabetPaintingScene.getSelectedLetterName() + ".png";
+					saveScreenShot(view, screenshot_from_andengine_imageName);
+					alphabetPaintingScene.handleScreenShotPost();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					countingNumberPaintingScene.handleScreenShotPre();
+					final String screenshot_from_andengine_imageName = "Fun2Learn_" + countingNumberPaintingScene.getSelectedLetterName() + ".png";
+					saveScreenShot(view, screenshot_from_andengine_imageName);
+					countingNumberPaintingScene.handleScreenShotPost();
+				}
+				break;
+			case R.id.share_imgv:
+				if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+					alphabetPaintingScene.handleScreenShotPre();
+					final String screenshot_from_andengine_imageName = "Fun2Learn_" + alphabetPaintingScene.getSelectedLetterName() + ".png";
+					String savedImagePath = saveScreenShot(view, screenshot_from_andengine_imageName);
+					shareImage(savedImagePath);
+					alphabetPaintingScene.handleScreenShotPost();
+				} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+					countingNumberPaintingScene.handleScreenShotPre();
+					final String screenshot_from_andengine_imageName = "Fun2Learn_" + countingNumberPaintingScene.getSelectedLetterName() + ".png";
+					String savedImagePath = saveScreenShot(view, screenshot_from_andengine_imageName);
+					shareImage(savedImagePath);
+					countingNumberPaintingScene.handleScreenShotPost();
+				}
+				break;
+		}
+	}
+
+	public void setSoundBtnsVisibilty() {
+		if (SharedPrefUtils.getSoundSettings(this)) {
+			sound_on_imgv.setVisibility(View.VISIBLE);
+			sound_off_imgv.setVisibility(View.GONE);
+		} else {
+			sound_on_imgv.setVisibility(View.GONE);
+			sound_off_imgv.setVisibility(View.VISIBLE);
+		}
+		if (SharedPrefUtils.getCountingScreenSoundSettings(this)) {
+			sound_on_imgv.setVisibility(View.VISIBLE);
+			sound_off_imgv.setVisibility(View.GONE);
+		} else {
+			sound_on_imgv.setVisibility(View.GONE);
+			sound_off_imgv.setVisibility(View.VISIBLE);
+		}
+	}
+
+	private void shareImage(String shareImagePath) {
+		Uri uriShareImage = Uri.parse(shareImagePath);
+		Intent share = new Intent(Intent.ACTION_SEND);
+		// If you want to share a png image only, you can do:
+		// setType("image/png"); OR for jpeg: setType("image/jpeg");
+		share.setType("image/*");
+		share.putExtra(Intent.EXTRA_STREAM, uriShareImage);
+		startActivity(Intent.createChooser(share, "Share Image!"));
+	}
+
+	private String saveScreenShot(View clickedView, final String screenshot_from_andengine_imageName) {
+		// =============Screen shot from andengine===================
+		String sreenshot_andengine_filePath = CommonUtils.findPath(AppsPartanBaseGameActivity.this) + screenshot_from_andengine_imageName;
+		File imagesFolder = new File(CommonUtils.findPath(AppsPartanBaseGameActivity.this));
+		if (!imagesFolder.exists())
+			imagesFolder.mkdirs();
+		int width = this.mRenderSurfaceView.getWidth();
+		int height = this.mRenderSurfaceView.getHeight();
+		ScreenCapture screenCapture = new ScreenCapture();
+		if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+			alphabetPaintingScene.getScene().attachChild(screenCapture);
+		} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+			countingNumberPaintingScene.getScene().attachChild(screenCapture);
+		}
+		screenCapture.capture(width, height, sreenshot_andengine_filePath, new IScreenCaptureCallback() {
+			@Override
+			public void onScreenCaptured(String pFilePath) {}
+
+			@Override
+			public void onScreenCaptureFailed(String pFilePath, Exception pException) {
+			}
+		});
+		if (clickedView.getId() == R.id.save_imgv) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					CommonUtils.showToast(AppsPartanBaseGameActivity.this, "Image Saved successfully..." + CommonUtils.findPath(AppsPartanBaseGameActivity.this) + screenshot_from_andengine_imageName);
+				}
+			});
+		}
+		return CommonUtils.findPath(AppsPartanBaseGameActivity.this) + screenshot_from_andengine_imageName;
+	}
+
+	@Override
+	public void onChooseColorTexture(int position, String color_texture_plate_type_name) {
+		if (alphabetPaintingScene != null && alphabetPaintingScene.getScene() != null && SceneManager.getScene() == alphabetPaintingScene.getScene()) {
+			alphabetPaintingScene.chooseColorTexture(position, color_texture_plate_type_name);
+		} else if (countingNumberPaintingScene != null && countingNumberPaintingScene.getScene() != null && SceneManager.getScene() == countingNumberPaintingScene.getScene()) {
+			countingNumberPaintingScene.chooseColorTexture(position, color_texture_plate_type_name);
+			// countingNumberPaintingScene..eraseWholePainting();
+		} else if (alphabetPuzzleScene != null && alphabetPuzzleScene.getScene() != null && SceneManager.getScene() == alphabetPuzzleScene.getScene()) {
+			alphabetPuzzleScene.chooseColorTexture(position, color_texture_plate_type_name);
+			// countingNumberPaintingScene..eraseWholePainting();
+		}
+	}
+
+	// will be overeridden
+	public void showInAppPurchaseDialog() {}
+
+	// will be overeridden
+	public void startInAppBillibg() {}
+
+	// will be overeridden
+	public void startRestoringTransaction() {}
+	// ==============startapp ads integration===========
 }

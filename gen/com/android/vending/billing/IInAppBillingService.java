@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: /home/konark/Documents/kunwar data/fun2learn/1.2/fun2learn/src/com/android/vending/billing/IInAppBillingService.aidl
+ * Original file: /home/konark/Desktop/learnapp/src/com/android/vending/billing/IInAppBillingService.aidl
  */
 package com.android.vending.billing;
 /**

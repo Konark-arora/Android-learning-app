@@ -3,12 +3,14 @@ package com.kids.fun2learn.utils;
 import android.app.Activity;
 import android.content.Context;
 
-import com.chartboost.sdk.Chartboost;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.kids.fun2learn.R;
 
 public class AdManagerUtils {
 
+	// ============*********admob**********===============
 	public static void ShowAd(AdView adView) {
 
 		// AdView mAdView = (AdView) getView().findViewById(R.id.adView);
@@ -16,62 +18,20 @@ public class AdManagerUtils {
 		adView.loadAd(adRequest);
 	}
 
-	/*******
-	 * Chartboost ads setup***********************
-	 * 
-	 * @param context
-	 * @param appId
-	 * @param appSignature
-	 */
+	public static InterstitialAd loadInterstitial(Activity context) {
 
-	public static void createChartBoostAds(Context context, String appId,
-			String appSignature) {
+		// // Create an ad.
+		InterstitialAd interstitialAd = new InterstitialAd(context);
+		interstitialAd.setAdUnitId(context.getResources().getString(
+				R.string.admod_interstitial_ad_id));
 
-		Chartboost.startWithAppId((Activity) context, appId, appSignature);
-		/*
-		 * Optional: If you want to program responses to Chartboost events,
-		 * supply a delegate object here and see step (10) for more information
-		 */
-		// Chartboost.setDelegate(delegate);
-		Chartboost.onCreate((Activity) context);
+		// AdRequest adRequest = new AdRequest.Builder().build();
+		// // Load the interstitial ad.
+		// interstitialAd.loadAd(adRequest);
 
+		return interstitialAd;
 	}
 
-	public static void startChaBoostAds(Context context) {
-
-		Chartboost.onStart((Activity) context);
-
-	}
-
-	public static void resumeCharBoostAds(Context context) {
-
-		Chartboost.onResume((Activity) context);
-
-	}
-
-	public static void pauseChartBoostAds(Context context) {
-
-		Chartboost.onPause((Activity) context);
-	}
-
-	public static void stopChartBoostAds(Context context) {
-
-		Chartboost.onStop((Activity) context);
-	}
-
-	public static void destroyChartBoostAds(Context context) {
-
-		Chartboost.onDestroy((Activity) context);
-	}
-
-	// public void onBackPressedChartBoost() {
-	//
-	// if (Chartboost.onBackPressed())
-	// return;
-	// else
-	// super.onBackPressed();
-	// }
-
-	// =========================*******************
+	// ===============******************
 
 }

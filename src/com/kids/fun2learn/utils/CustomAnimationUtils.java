@@ -51,6 +51,14 @@ public class CustomAnimationUtils {
 		this.i = -1;
 
 		this.randomNumberAnimation = randomNumberAnimation;
+		
+		if(timer != null){
+			
+			stopAnimationTimer();
+		}
+		this.timer = null;
+		
+		this.appsOnTimerTask = null;
 
 	}
 
@@ -163,6 +171,8 @@ public class CustomAnimationUtils {
 				// }
 				//
 				// }
+				
+				imageView.clearAnimation();
 			}
 		});
 
@@ -267,6 +277,9 @@ public class CustomAnimationUtils {
 					});
 
 				} else {
+					
+					counter = 0;
+					i = 0;
 					stopAnimationTimer();
 
 					if (mascotImageView != null) {
@@ -288,7 +301,7 @@ public class CustomAnimationUtils {
 
 	// ===================Scale Animation=============
 
-	public static void CustomScaleAnimation(View view) {
+	public static void CustomScaleAnimation(final View view) {
 
 		view.setVisibility(View.VISIBLE);
 
@@ -303,6 +316,28 @@ public class CustomAnimationUtils {
 		set.addAnimation(scaleAnimation);
 
 		view.startAnimation(set);
+		
+		set.setAnimationListener(new AnimationListener() {
+			
+			@Override
+			public void onAnimationStart(Animation animation) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				
+				view.clearAnimation();
+				
+			}
+		});
 
 	}
 
@@ -342,7 +377,9 @@ public class CustomAnimationUtils {
 			public void onAnimationEnd(Animation animation) {
 				// TODO Auto-generated method stub
 				
-				view.setVisibility(View.INVISIBLE);
+				view.setVisibility(View.GONE);
+				
+				view.clearAnimation();
 			}
 		});
 

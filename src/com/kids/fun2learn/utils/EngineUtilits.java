@@ -1,10 +1,9 @@
 package com.kids.fun2learn.utils;
 
-import org.anddev.andengine.engine.Engine;
-import org.anddev.andengine.engine.camera.Camera;
-import org.anddev.andengine.engine.options.EngineOptions;
-import org.anddev.andengine.engine.options.EngineOptions.ScreenOrientation;
-import org.anddev.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.engine.camera.Camera;
+import org.andengine.engine.options.EngineOptions;
+import org.andengine.engine.options.ScreenOrientation;
+import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 
 import android.app.Activity;
 import android.util.DisplayMetrics;
@@ -18,39 +17,53 @@ public class EngineUtilits {
 	 * @return engine
 	 */
 
-	public static Engine onLoadEngine(Activity activity) {
-		
-		CommonUtils.removeActivityTitle(activity);
-		
+	public static EngineOptions onLoadEngine(Activity activity) {
+
+		CommonUtils.setFullScreenMode(activity);
+
+		final Camera camera = new Camera(0, 0, CommonConstants.CAMERA_WIDTH,
+				CommonConstants.CAMERA_HEIGHT);
+
 		DisplayMetrics dm = new DisplayMetrics();
 		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
 		int mWidth = dm.widthPixels;
 		int mHeight = dm.heightPixels;
-		/*
-		 * if (mWidth < 850) { mCamera = new Camera(0, 0, mWidth / dm.density,
-		 * mHeight / dm.density); }
-		 */
-		Camera mCamera = new Camera(0, 0, CommonConstants.CAMERA_WIDTH,
-				CommonConstants.CAMERA_HEIGHT);
-		if (mWidth < 850) {
-			RatioResolutionPolicy ratioPolicy = new RatioResolutionPolicy(
-					mWidth, mHeight);
-			final Engine engine = new Engine(new EngineOptions(true,
-					ScreenOrientation.PORTRAIT, ratioPolicy, mCamera)
-					.setNeedsMusic(true).setNeedsSound(true));
 
-			return engine;
-		} else {
-			RatioResolutionPolicy ratioPolicy = new RatioResolutionPolicy(
-					mWidth, mHeight);
+		RatioResolutionPolicy ratioPolicy = new RatioResolutionPolicy(mWidth,
+				mHeight);
+		
+		final EngineOptions engineOptions = new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
+				ratioPolicy, camera);
 
-			final Engine engine = new Engine(new EngineOptions(true,
-					ScreenOrientation.PORTRAIT, ratioPolicy, mCamera)
-					.setNeedsMusic(true).setNeedsSound(true));
+		engineOptions.getAudioOptions().setNeedsSound(true);
+        engineOptions.getAudioOptions().setNeedsMusic(true);
 
-			return engine;
-		}
+		return engineOptions;
+		// DisplayMetrics dM = new DisplayMetrics();
+		// activity.getWindowManager().getDefaultDisplay().getMetrics(dM);
+		// int ScreenWidth = dM.widthPixels;
+		// int ScreenHeight = dM.heightPixels;
+		//
+		//
+		// return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
+		// new RatioResolutionPolicy(CommonConstants.CAMERA_WIDTH,
+		// CommonConstants.CAMERA_HEIGHT), camera);
+		//
 
 	}
+
+	// private void getDeviceResolution() {
+	// DisplayMetrics dM = new DisplayMetrics();
+	// this.getWindowManager().getDefaultDisplay().getMetrics(dM);
+	// this.ScreenWidth = dM.widthPixels;
+	// this.ScreenHeight = dM.heightPixels;
+	// this.resolutionRatio = this.ScreenWidth/this.ScreenHeight;
+	//
+	// resolutionRatio = (double)Math.round(resolutionRatio * 100) / 100;
+	//
+	// Log.d("Resolution","ScrennWidth: "+this.ScreenWidth );
+	// Log.d("Resolution","ScrennHeight: "+this.ScreenHeight );
+	// Log.d("Resolution","Resolution Ratio: " + this.resolutionRatio );
+	// }
 
 }
