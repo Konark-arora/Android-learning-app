@@ -899,8 +899,7 @@ public class AlphabetPuzzleScene implements ImagePuzzleCompleteListener {
 				backgroundMusic.play();
 				backgroundMusic.setVolume(.5f);
 				backgroundMusic.setLooping(true);
-			} catch (Exception e) {
-			}
+			} catch (Exception e) {}
 		}
 	}
 
